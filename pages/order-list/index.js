@@ -32,7 +32,7 @@ Page({
           wx.request({
             url: 'https://api.it120.cc/' + app.globalData.subDomain + '/order/close',
             data: {
-              token: app.globalData.token,
+              token: wx.getStorageSync('token'),
               orderId: orderId
             },
             success: (res) => {
@@ -50,15 +50,24 @@ Page({
     var that = this;
     var orderId = e.currentTarget.dataset.id;
     var money = e.currentTarget.dataset.money;
+    var needScore = e.currentTarget.dataset.score;
     wx.request({
       url: 'https://api.it120.cc/' + app.globalData.subDomain + '/user/amount',
       data: {
-        token: app.globalData.token
+        token: wx.getStorageSync('token')
       },
       success: function (res) {
         if (res.data.code == 0) {
           // res.data.data.balance
           money = money - res.data.data.balance;
+          if (res.data.data.score < needScore) {
+            wx.showModal({
+              title: '错误',
+              content: '您的积分不足，无法支付',
+              showCancel: false
+            })
+            return;
+          }
           if (money <= 0) {
             // 直接使用余额支付
             wx.request({
@@ -68,7 +77,7 @@ Page({
                 'content-type': 'application/x-www-form-urlencoded'
               },
               data: {
-                token: app.globalData.token,
+                token: wx.getStorageSync('token'),
                 orderId: orderId
               },
               success: function (res2) {
@@ -100,7 +109,7 @@ Page({
     var that = this;
     wx.request({
       url: 'https://api.it120.cc/' + app.globalData.subDomain + '/order/statistics',
-      data: { token: app.globalData.token },
+      data: { token: wx.getStorageSync('token') },
       success: (res) => {
         wx.hideLoading();
         if (res.data.code == 0) {
@@ -143,7 +152,7 @@ Page({
     wx.showLoading();
     var that = this;
     var postData = {
-      token: app.globalData.token
+      token: wx.getStorageSync('token')
     };
     postData.status = that.data.currentType;
     this.getOrderStatistics();
