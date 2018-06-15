@@ -1,7 +1,7 @@
 //app.js
 App({
   onLaunch: function () {
-    var that = this;
+    var that = this;    
     //  获取商城名称
     wx.request({
       url: 'https://api.it120.cc/'+ that.globalData.subDomain +'/config/get-value',
@@ -43,6 +43,24 @@ App({
       success: function (res) {
         if (res.data.code == 0) {
           that.globalData.kanjiaList = res.data.data.result;
+        }
+      }
+    })
+    // 判断是否登录
+    let token = wx.getStorageSync('token');
+    if (!token) {
+      that.goLoginPageTimeOut()
+      return
+    }
+    wx.request({
+      url: 'https://api.it120.cc/' + that.globalData.subDomain + '/user/check-token',
+      data: {
+        token: token
+      },
+      success: function (res) {
+        if (res.data.code != 0) {
+          wx.removeStorageSync('token')
+          that.goLoginPageTimeOut()
         }
       }
     })
@@ -95,6 +113,13 @@ App({
       }
     })
   },  
+  goLoginPageTimeOut: function () {
+    setTimeout(function(){
+      wx.navigateTo({
+        url: "/pages/authorize/index"
+      })
+    }, 1000)    
+  },
   globalData:{
     userInfo:null,
     subDomain: "xrshop", // 如果你的域名是： https://api.it120.cc/abcd 那么这里只要填写 abcd
